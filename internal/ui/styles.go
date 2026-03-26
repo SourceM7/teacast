@@ -20,12 +20,12 @@ var (
 	// Tab styles
 	ActiveTabStyle = lipgloss.NewStyle().
 			Foreground(ColorText).
-			Background(lipgloss.Color("#1E1B4B")).
+			Background(ColorPrimary).
 			Bold(true).
 			Padding(0, 2)
 
 	InactiveTabStyle = lipgloss.NewStyle().
-			Foreground(ColorMuted).
+			Foreground(ColorTextDim).
 			Padding(0, 2)
 
 	TabBarStyle = lipgloss.NewStyle().
@@ -145,4 +145,47 @@ var (
 	ScrollHintStyle = lipgloss.NewStyle().
 			Foreground(ColorMuted).
 			Italic(true)
+
+	// Status bar — sits between content and playbar
+	StatusBarStyle = lipgloss.NewStyle().
+			Foreground(ColorTextDim).
+			Background(lipgloss.Color("#1a1a2e")).
+			Padding(0, 2).
+			Italic(true)
+
+	// Tab number hint (shown before tab name for keyboard shortcut)
+	TabNumberStyle = lipgloss.NewStyle().
+			Foreground(ColorMuted).
+			Bold(false)
+
+	ActiveTabNumberStyle = lipgloss.NewStyle().
+				Foreground(ColorSecondary).
+				Bold(true)
+
+	// Empty state — centered message for tabs with no content
+	EmptyStateTitle = lipgloss.NewStyle().
+			Foreground(ColorTextDim).
+			Bold(true).
+			Align(lipgloss.Center)
+
+	EmptyStateMsg = lipgloss.NewStyle().
+			Foreground(ColorMuted).
+			Align(lipgloss.Center)
+
+	EmptyStateIcon = lipgloss.NewStyle().
+			Foreground(ColorSubtle).
+			Align(lipgloss.Center)
+
+	// Loading
+	LoadingStyle = lipgloss.NewStyle().
+			Foreground(ColorSecondary)
+
+	// Active/playing indicator for episodes currently playing
+	NowPlayingStyle = lipgloss.NewStyle().
+			Foreground(ColorAccent).
+			Bold(true)
+
+	// Divider
+	DividerStyle = lipgloss.NewStyle().
+			Foreground(ColorSubtle)
 )

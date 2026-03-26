@@ -141,6 +141,12 @@ func (p *Player) Seek(seconds float64) {
 	p.sendCommand("seek", seconds, "relative")
 }
 
+func (p *Player) SetVolume(delta float64) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.sendCommand("add", "volume", delta)
+}
+
 func (p *Player) GetStatus() Status {
 	p.mu.Lock()
 	defer p.mu.Unlock()

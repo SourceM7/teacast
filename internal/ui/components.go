@@ -289,20 +289,15 @@ func RenderPlaybar(ep *model.Episode, podcast *model.Podcast, status player.Stat
 	}
 
 	var stateIcon string
-	var stateLabel string
 	switch status.State {
 	case player.Playing:
-		stateIcon = PrimaryTextStyle.Render("▶")
-		stateLabel = AccentTextStyle.Render("PLAYING")
+		stateIcon = AccentTextStyle.Render("▶")
 	case player.Paused:
 		stateIcon = WarningTextStyle.Render("⏸")
-		stateLabel = WarningTextStyle.Render("PAUSED")
 	default:
 		stateIcon = MutedTextStyle.Render("■")
-		stateLabel = MutedTextStyle.Render("STOPPED")
 	}
 
-	// Use mpv-reported position/duration if available, fall back to episode metadata
 	position := status.Position
 	duration := status.Duration
 	if duration == 0 {
@@ -316,48 +311,67 @@ func RenderPlaybar(ep *model.Episode, podcast *model.Podcast, status player.Stat
 
 	timeStr := fmt.Sprintf("%s / %s", FormatDuration(position), FormatDuration(duration))
 
-	// Titles — truncate to avoid wrapping
-	maxTitleLen := width/3 - 4
-	if maxTitleLen < 10 {
-		maxTitleLen = 10
+	// Truncate titles to fit
+	maxTitle := width / 3
+	if maxTitle < 10 {
+		maxTitle = 10
 	}
-	if maxTitleLen > 45 {
-		maxTitleLen = 45
+	if maxTitle > 50 {
+		maxTitle = 50
 	}
-	title := ep.Title
-	if len(title) > maxTitleLen {
-		title = title[:maxTitleLen-1] + "…"
-	}
+	title := truncate(ep.Title, maxTitle)
+	podTitle := truncate(podcast.Title, 25)
 
-	maxPodLen := 22
-	podTitle := podcast.Title
-	if len(podTitle) > maxPodLen {
-		podTitle = podTitle[:maxPodLen-1] + "…"
-	}
-
-	// Progress bar fills the gap between time info and right edge
-	// Fixed elements: icon(1) + spaces(2) + stateLabel(~7) + spaces(2) + title + " · " + pod + "  " + time + spaces
-	fixedLen := 1 + 2 + 7 + 2 + len(title) + 3 + len(podTitle) + 2 + len(timeStr) + 4 + 4
-	barWidth := width - fixedLen
-	if barWidth < 8 {
-		barWidth = 8
-	}
-	if barWidth > 40 {
-		barWidth = 40
-	}
-
-	bar := ProgressBar(barWidth, progress)
-
-	line1 := fmt.Sprintf(" %s  %s  %s  ·  %s",
+	// Line 1: icon + title + podcast name
+	line1 := fmt.Sprintf(" %s  %s  ·  %s",
 		stateIcon,
-		stateLabel,
 		TitleStyle.Render(title),
 		SubtitleStyle.Render(podTitle),
 	)
-	line2 := fmt.Sprintf("         %s  %s", bar, MutedTextStyle.Render(timeStr))
+
+	// Line 2: progress bar + time — bar fills remaining space
+	timeRendered := MutedTextStyle.Render(timeStr)
+	timeWidth := lipgloss.Width(timeRendered)
+	barWidth := width - timeWidth - 8
+	if barWidth < 10 {
+		barWidth = 10
+	}
+	if barWidth > 50 {
+		barWidth = 50
+	}
+
+	bar := ProgressBar(barWidth, progress)
+	line2 := fmt.Sprintf("    %s  %s", bar, timeRendered)
 
 	content := lipgloss.JoinVertical(lipgloss.Left, line1, line2)
 	return PlaybarStyle.Width(width).Render(content)
+}
+
+func truncate(s string, max int) string {
+	if len(s) <= max {
+		return s
+	}
+	if max < 2 {
+		return s[:max]
+	}
+	return s[:max-1] + "…"
+}
+
+func RenderEmptyState(icon, title, subtitle string, width int) string {
+	parts := []string{
+		"",
+		"",
+		EmptyStateIcon.Width(width).Render(icon),
+		"",
+		EmptyStateTitle.Width(width).Render(title),
+		EmptyStateMsg.Width(width).Render(subtitle),
+		"",
+	}
+	return lipgloss.JoinVertical(lipgloss.Center, parts...)
+}
+
+func RenderLoading(msg string, width int) string {
+	return lipgloss.NewStyle().Width(width).Align(lipgloss.Center).Render(msg)
 }
 
 func RenderHelp(keys [][]string) string {
